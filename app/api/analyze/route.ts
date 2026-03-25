@@ -1,6 +1,5 @@
 import OpenAI from "openai"
 import { scrapeCar } from "@/lib/scraper"
-import { v4 as uuidv4 } from "uuid"
 import fs from "fs"
 import path from "path"
 
@@ -10,84 +9,86 @@ const openai = new OpenAI({
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
-    const { url } = body
+    const { url } = await req.json()
 
-    // 🔎 SCRAPE
+    // 🧠 1. SCRAPE
     const car = await scrapeCar(url)
 
-    // 🤖 AI PROMPT
+    // 🧠 2. PROMPT
     const prompt = `
-You are an expert car inspector.
+You are a car expert.
 
-Analyze this used car listing:
+Analyze this car listing:
 
 Title: ${car.title}
 Price: ${car.price}
 
-Respond STRICTLY in JSON:
+Give a short evaluation:
+- Is it overpriced or underpriced?
+- Any red flags?
+- Should someone buy it?
 
+Respond ONLY in JSON:
 {
   "score": number (1-10),
-  "verdict": "good / average / bad",
-  "analysis": "short explanation in simple language"
+  "verdict": "good deal / average / overpriced",
+  "analysis": "short explanation"
 }
 `
 
+    // 🤖 3. AI CALL
     const response = await openai.responses.create({
       model: "gpt-5-nano",
       input: prompt,
     })
 
-    // 🧠 PARSE AI
-    let aiData
+    let ai = {
+      score: 0,
+      verdict: "unknown",
+      analysis: "No analysis",
+    }
 
     try {
-      aiData = JSON.parse(response.output_text)
-    } catch {
-      aiData = {
-        score: 5,
-        verdict: "average",
-        analysis: response.output_text
-      }
+      ai = JSON.parse(response.output_text || "{}")
+    } catch (e) {
+      console.log("AI parse error")
     }
 
-    // 🆔 GENERATE ID
-    const id = uuidv4()
+    // 🆔 4. GENERATE ID
+    const id = Math.random().toString(36).substring(2, 10)
 
-    const report = {
-      id,
-      ...car,
-      ai: aiData,
-      createdAt: new Date().toISOString()
+    // 📁 5. FILE PATH
+    const filePath = path.join(process.cwd(), "app/data/reports.json")
+
+    // 📦 6. LOAD EXISTING
+    let reports: any = {}
+
+    if (fs.existsSync(filePath)) {
+      const file = fs.readFileSync(filePath, "utf-8")
+      reports = JSON.parse(file || "{}")
     }
 
-    // 📁 SAVE TO FILE
-    const filePath = path.join(process.cwd(), "data", "reports.json")
-
-    // ha nincs file → create
-    if (!fs.existsSync(filePath)) {
-      fs.writeFileSync(filePath, "[]")
+    // 💾 7. SAVE NEW REPORT
+    reports[id] = {
+      title: car.title,
+      price: car.price,
+      images: car.images,
+      ai,
+      createdAt: new Date().toISOString(),
     }
-
-    const fileData = fs.readFileSync(filePath, "utf-8")
-    const reports = JSON.parse(fileData)
-
-    reports.unshift(report)
 
     fs.writeFileSync(filePath, JSON.stringify(reports, null, 2))
 
-    // 🔗 RETURN SHARE LINK
-    return Response.json({
-      ...report,
-      shareUrl: `/report/${id}`
-    })
+    console.log("✅ Saved report:", id)
+
+    // 🚀 8. RETURN ID
+    return Response.json({ id })
 
   } catch (error: any) {
-    console.error("ERROR:", error)
+    console.error("❌ ANALYZE ERROR:", error)
 
     return Response.json({
-      error: error.message
+      error: error.message,
     })
   }
 }
