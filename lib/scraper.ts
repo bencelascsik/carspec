@@ -5,20 +5,27 @@ const API_KEY = process.env.SCRAPER_API_KEY
 
 export async function scrapeCar(url: string) {
   try {
-    console.log("Scraping URL:", url)
+    console.log("🔍 Scraping:", url)
 
-    // 🔥 ScraperAPI request
+    if (!API_KEY) {
+      throw new Error("Missing SCRAPER_API_KEY")
+    }
+
     const apiUrl = `http://api.scraperapi.com?api_key=${API_KEY}&url=${encodeURIComponent(
       url
-    )}&render=true`
+    )}&render=true&premium=true&country_code=hu`
 
     const { data } = await axios.get(apiUrl)
 
+    // DEBUG: nézd meg mit kaptunk vissza
+    console.log("📦 HTML length:", data.length)
+
     const $ = cheerio.load(data)
 
-    // 🧠 TITLE
+    // 🧠 TITLE (több fallback)
     let title =
       $("h1").first().text().trim() ||
+      $("meta[property='og:title']").attr("content") ||
       $("title").text().trim()
 
     // 🧠 PRICE (több fallback)
@@ -50,16 +57,19 @@ export async function scrapeCar(url: string) {
     title = title || "Unknown car"
     price = price || "Price not available"
 
-    console.log("SCRAPED:", { title, price, imagesCount: images.length })
+    console.log("✅ RESULT:", {
+      title,
+      price,
+      images: images.length,
+    })
 
     return {
       title,
       price,
       images: images.slice(0, 5),
     }
-
   } catch (error: any) {
-    console.error("SCRAPER ERROR:", error.message)
+    console.error("❌ SCRAPER ERROR:", error.message)
 
     return {
       title: "Unknown car",
