@@ -1,3 +1,5 @@
+export const runtime = "nodejs"
+
 import fs from "fs"
 import path from "path"
 
@@ -7,16 +9,13 @@ export async function POST(req: Request) {
     const { url } = body
 
     if (!url) {
-      return new Response(
-        JSON.stringify({ error: "Missing URL" }),
-        { status: 400 }
-      )
+      return new Response(JSON.stringify({ error: "Missing URL" }), {
+        status: 400,
+      })
     }
 
-    // 🔥 GENERATE ID
     const id = Date.now().toString()
 
-    // 🚗 MOCK "SCRAPED" DATA
     const result = {
       id,
       car: {
@@ -32,31 +31,28 @@ export async function POST(req: Request) {
       },
     }
 
-    // 📁 SAVE TO JSON
     const filePath = path.join(process.cwd(), "app/data/reports.json")
 
-    let reports = {}
+    let reports: any = {}
 
     if (fs.existsSync(filePath)) {
       const file = fs.readFileSync(filePath, "utf-8")
       reports = JSON.parse(file || "{}")
     }
 
-    // @ts-ignore
     reports[id] = result
 
     fs.writeFileSync(filePath, JSON.stringify(reports, null, 2))
 
-    // ✅ RETURN ID
-    return new Response(JSON.stringify({ id }), {
+    // 🔥 FONTOS: teljes result megy vissza
+    return new Response(JSON.stringify(result), {
       status: 200,
     })
   } catch (err) {
     console.error("API ERROR:", err)
 
-    return new Response(
-      JSON.stringify({ error: "Server error" }),
-      { status: 500 }
-    )
+    return new Response(JSON.stringify({ error: "Server error" }), {
+      status: 500,
+    })
   }
 }
