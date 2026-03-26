@@ -7,5 +7,31 @@
       "analysis": "This is a demo analysis."
     },
     "createdAt": "2026-03-26T00:54:44.407Z"
+  },
+  "1774546865396": {
+    "id": "1774546865396",
+    "car": {
+      "title": "Mercedes-Benz C43 AMG",
+      "price": "13 990 000 Ft",
+      "mileage": "120 000 km",
+      "year": "2018"
+    },
+    "ai": {
+      "score": 0,
+      "analysis": "This car looks decent based on price and mileage. Further inspection recommended."
+    }
+  },
+  "1774546871450": {
+    "id": "1774546871450",
+    "car": {
+      "title": "Mercedes-Benz C43 AMG",
+      "price": "13 990 000 Ft",
+      "mileage": "120 000 km",
+      "year": "2018"
+    },
+    "ai": {
+      "score": 6,
+      "analysis": "This car looks decent based on price and mileage. Further inspection recommended."
+    }
   }
 }

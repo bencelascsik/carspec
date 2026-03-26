@@ -3,43 +3,59 @@ import path from "path"
 
 export async function POST(req: Request) {
   try {
-    const { url } = await req.json()
+    const body = await req.json()
+    const { url } = body
 
     if (!url) {
-      return Response.json({ error: "Missing URL" }, { status: 400 })
+      return new Response(
+        JSON.stringify({ error: "Missing URL" }),
+        { status: 400 }
+      )
     }
 
-    // 🔥 FAKE AI (teszthez)
-    const ai = {
-      score: Math.floor(Math.random() * 10) + 1,
-      verdict: "AI result",
-      analysis: "This is a demo analysis.",
+    // 🔥 GENERATE ID
+    const id = Date.now().toString()
+
+    // 🚗 MOCK "SCRAPED" DATA
+    const result = {
+      id,
+      car: {
+        title: "Mercedes-Benz C43 AMG",
+        price: "13 990 000 Ft",
+        mileage: "120 000 km",
+        year: "2018",
+      },
+      ai: {
+        score: Math.floor(Math.random() * 10),
+        analysis:
+          "This car looks decent based on price and mileage. Further inspection recommended.",
+      },
     }
 
-    const id = Math.random().toString(36).substring(2, 10)
-
+    // 📁 SAVE TO JSON
     const filePath = path.join(process.cwd(), "app/data/reports.json")
 
-    let reports: any = {}
+    let reports = {}
 
     if (fs.existsSync(filePath)) {
       const file = fs.readFileSync(filePath, "utf-8")
       reports = JSON.parse(file || "{}")
     }
 
-    reports[id] = {
-      url,
-      ai,
-      createdAt: new Date().toISOString(),
-    }
+    // @ts-ignore
+    reports[id] = result
 
     fs.writeFileSync(filePath, JSON.stringify(reports, null, 2))
 
-    return Response.json({ id })
+    // ✅ RETURN ID
+    return new Response(JSON.stringify({ id }), {
+      status: 200,
+    })
+  } catch (err) {
+    console.error("API ERROR:", err)
 
-  } catch (error: any) {
-    return Response.json(
-      { error: error.message || "Error" },
+    return new Response(
+      JSON.stringify({ error: "Server error" }),
       { status: 500 }
     )
   }
