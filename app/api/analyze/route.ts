@@ -11,10 +11,14 @@ export async function POST(req: Request) {
   try {
     const { url } = await req.json()
 
-    // 🧠 1. SCRAPE
+    if (!url) {
+      return Response.json({ error: "Missing URL" }, { status: 400 })
+    }
+
+    // 🔍 SCRAPE
     const car = await scrapeCar(url)
 
-    // 🧠 2. PROMPT
+    // 🤖 AI PROMPT
     const prompt = `
 You are a car expert.
 
@@ -36,7 +40,6 @@ Respond ONLY in JSON:
 }
 `
 
-    // 🤖 3. AI CALL
     const response = await openai.responses.create({
       model: "gpt-5-nano",
       input: prompt,
@@ -50,17 +53,16 @@ Respond ONLY in JSON:
 
     try {
       ai = JSON.parse(response.output_text || "{}")
-    } catch (e) {
+    } catch {
       console.log("AI parse error")
     }
 
-    // 🆔 4. GENERATE ID
+    // 🆔 ID
     const id = Math.random().toString(36).substring(2, 10)
 
-    // 📁 5. FILE PATH
+    // 📁 SAVE
     const filePath = path.join(process.cwd(), "app/data/reports.json")
 
-    // 📦 6. LOAD EXISTING
     let reports: any = {}
 
     if (fs.existsSync(filePath)) {
@@ -68,7 +70,6 @@ Respond ONLY in JSON:
       reports = JSON.parse(file || "{}")
     }
 
-    // 💾 7. SAVE NEW REPORT
     reports[id] = {
       title: car.title,
       price: car.price,
@@ -79,16 +80,15 @@ Respond ONLY in JSON:
 
     fs.writeFileSync(filePath, JSON.stringify(reports, null, 2))
 
-    console.log("✅ Saved report:", id)
-
-    // 🚀 8. RETURN ID
+    // ✅ RESPONSE
     return Response.json({ id })
 
   } catch (error: any) {
-    console.error("❌ ANALYZE ERROR:", error)
+    console.error("ANALYZE ERROR:", error)
 
-    return Response.json({
-      error: error.message,
-    })
+    return Response.json(
+      { error: error.message || "Internal error" },
+      { status: 500 }
+    )
   }
 }
