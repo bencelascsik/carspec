@@ -16,19 +16,19 @@ export default function Home() {
       title: "Carspec",
       subtitle: "Instantly analyze any used car listing with AI.",
       placeholder: "Paste car listing URL...",
-      button: "Analyze Car",
+      button: "Analyze",
       loading: "Analyzing...",
     },
     hu: {
       title: "Carspec",
-      subtitle: "Elemezz használt autókat AI segítségével.",
+      subtitle: "Használt autók AI elemzése.",
       placeholder: "Illeszd be a linket...",
       button: "Elemzés",
       loading: "Elemzés...",
     },
     de: {
       title: "Carspec",
-      subtitle: "Analysiere Autos mit KI.",
+      subtitle: "Autoanalyse mit KI.",
       placeholder: "Link einfügen...",
       button: "Analysieren",
       loading: "Analyse...",
@@ -69,7 +69,7 @@ export default function Home() {
       if (!res.ok) throw new Error()
 
       window.location.href = `/report/${data.id}`
-    } catch (err) {
+    } catch {
       alert("Error ❌")
     } finally {
       setLoading(false)
@@ -80,33 +80,24 @@ export default function Home() {
     <main className="min-h-screen flex flex-col items-center justify-center px-6 bg-white text-black dark:bg-black dark:text-white">
 
       {/* TOP BAR */}
-      <div className="absolute top-6 right-6 flex gap-3">
+      <div className="absolute top-6 right-6 flex items-center gap-4">
 
-        <select
-          value={lang}
-          onChange={(e) => setLang(e.target.value as Lang)}
-          className="px-3 py-2 rounded-lg bg-black text-white dark:bg-white dark:text-black"
-        >
-          <option value="en">EN</option>
-          <option value="hu">HU</option>
-          <option value="de">DE</option>
-        </select>
-
-        <div className="flex rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700">
-
-          <button onClick={() => setTheme("light")} className="px-3 py-2">
-            ☀️
-          </button>
-
-          <button onClick={() => setTheme("dark")} className="px-3 py-2">
-            🌙
-          </button>
-
-          <button onClick={() => setTheme("auto")} className="px-3 py-2">
-            ⚙️
-          </button>
-
+        {/* LANGUAGE */}
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <button onClick={() => setLang("hu")} className={lang === "hu" ? "opacity-100" : "opacity-40"}>HU</button>
+          <span className="opacity-30">|</span>
+          <button onClick={() => setLang("en")} className={lang === "en" ? "opacity-100" : "opacity-40"}>EN</button>
+          <span className="opacity-30">|</span>
+          <button onClick={() => setLang("de")} className={lang === "de" ? "opacity-100" : "opacity-40"}>DE</button>
         </div>
+
+        {/* THEME */}
+        <div className="flex border rounded-lg overflow-hidden border-gray-300 dark:border-gray-700">
+          <button onClick={() => setTheme("light")} className="px-3 py-2">☀️</button>
+          <button onClick={() => setTheme("dark")} className="px-3 py-2">🌙</button>
+          <button onClick={() => setTheme("auto")} className="px-3 py-2">⚙️</button>
+        </div>
+
       </div>
 
       {/* HEADER */}
