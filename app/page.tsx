@@ -92,10 +92,10 @@ export default function Home() {
         </div>
 
         {/* THEME */}
-        <div className="flex border rounded-lg overflow-hidden border-gray-300 dark:border-gray-700">
-          <button onClick={() => setTheme("light")} className="px-3 py-2">☀️</button>
-          <button onClick={() => setTheme("dark")} className="px-3 py-2">🌙</button>
-          <button onClick={() => setTheme("auto")} className="px-3 py-2">⚙️</button>
+        <div className="flex border rounded-xl overflow-hidden border-gray-300 dark:border-gray-700">
+          <button onClick={() => setTheme("light")} className="px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-800">☀️</button>
+          <button onClick={() => setTheme("dark")} className="px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-800">🌙</button>
+          <button onClick={() => setTheme("auto")} className="px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-800">⚙️</button>
         </div>
 
       </div>
@@ -114,13 +114,15 @@ export default function Home() {
           placeholder={t.placeholder}
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          className="w-full px-6 py-4 rounded-2xl bg-gray-100 text-black dark:bg-white dark:text-black outline-none"
+          className="w-full px-6 py-4 rounded-2xl bg-gray-100 text-black dark:bg-white dark:text-black outline-none shadow"
         />
 
         <button
           onClick={handleAnalyze}
           disabled={loading}
-          className="w-full py-4 rounded-2xl text-lg font-medium bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white disabled:bg-blue-400"
+          className="w-full py-4 rounded-2xl text-lg font-medium transition-all
+          bg-blue-600 hover:bg-blue-500 active:scale-[0.98]
+          text-white disabled:bg-blue-400"
         >
           {loading ? t.loading : t.button}
         </button>
