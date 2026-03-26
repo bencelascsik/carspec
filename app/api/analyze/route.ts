@@ -1,58 +1,35 @@
-export const runtime = "nodejs"
-
-import fs from "fs"
-import path from "path"
+import { NextResponse } from "next/server"
+import { supabase } from "@/lib/supabase"
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
-    const { url } = body
+    const { url } = await req.json()
 
     if (!url) {
-      return new Response(JSON.stringify({ error: "Missing URL" }), {
-        status: 400,
-      })
+      return NextResponse.json({ error: "No URL" }, { status: 400 })
     }
+
+    const score = Math.floor(Math.random() * 10) + 1
+
+    const verdict =
+      score >= 7 ? "GOOD DEAL" : score >= 4 ? "AVERAGE" : "AVOID"
 
     const id = Date.now().toString()
 
-    const result = {
+    const { error } = await supabase.from("reports").insert({
       id,
-      car: {
-        title: "Mercedes-Benz C43 AMG",
-        price: "13 990 000 Ft",
-        mileage: "120 000 km",
-        year: "2018",
-      },
-      ai: {
-        score: Math.floor(Math.random() * 10),
-        analysis:
-          "This car looks decent based on price and mileage. Further inspection recommended.",
-      },
-    }
-
-    const filePath = path.join(process.cwd(), "app/data/reports.json")
-
-    let reports: any = {}
-
-    if (fs.existsSync(filePath)) {
-      const file = fs.readFileSync(filePath, "utf-8")
-      reports = JSON.parse(file || "{}")
-    }
-
-    reports[id] = result
-
-    fs.writeFileSync(filePath, JSON.stringify(reports, null, 2))
-
-    // 🔥 FONTOS: teljes result megy vissza
-    return new Response(JSON.stringify(result), {
-      status: 200,
+      url,
+      score,
+      verdict,
     })
+
+    if (error) {
+      console.error(error)
+      return NextResponse.json({ error: "DB error" }, { status: 500 })
+    }
+
+    return NextResponse.json({ id })
   } catch (err) {
-    console.error("API ERROR:", err)
-
-    return new Response(JSON.stringify({ error: "Server error" }), {
-      status: 500,
-    })
+    return NextResponse.json({ error: "Server error" }, { status: 500 })
   }
 }

@@ -1,34 +1,12 @@
-import { notFound } from "next/navigation"
-import fs from "fs"
-import path from "path"
+"use client"
 
-export default async function ReportPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
-  // 🔥 EZ A LÉNYEG
-  const { id } = await params
+import { useSearchParams } from "next/navigation"
 
-  const filePath = path.join(process.cwd(), "app/data/reports.json")
+export default function ReportPage() {
+  const params = useSearchParams()
 
-  if (!fs.existsSync(filePath)) {
-    return notFound()
-  }
-
-  const file = fs.readFileSync(filePath, "utf-8")
-  const reports = JSON.parse(file)
-
-  const data = reports[id]
-
-  if (!data) {
-    return notFound()
-  }
-
-  const score = data.ai?.score || 0
-
-  const verdict =
-    score >= 7 ? "GOOD DEAL" : score >= 4 ? "AVERAGE" : "AVOID"
+  const score = Number(params.get("score") || 0)
+  const verdict = params.get("verdict") || "UNKNOWN"
 
   const color =
     score >= 7
@@ -39,25 +17,10 @@ export default async function ReportPage({
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-black text-white">
-      <div className="max-w-xl w-full p-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur">
-
-        <h1 className="text-2xl font-bold mb-4">
-          {data.car?.title || "Car"}
-        </h1>
-
-        <p className="opacity-70 mb-6">
-          {data.car?.price || "No price"}
-        </p>
-
-        <div className={`p-6 rounded-xl text-center ${color}`}>
-          <div className="text-sm opacity-70 mb-2">AI Verdict</div>
-          <div className="text-3xl font-bold">{verdict}</div>
-          <div className="text-sm mt-1">{score}/10</div>
-        </div>
-
-        <div className="mt-6 text-sm opacity-80">
-          {data.ai?.analysis || "No analysis"}
-        </div>
+      <div className={`p-10 rounded-2xl text-center ${color}`}>
+        <p className="opacity-60 mb-2">AI Verdict</p>
+        <h1 className="text-5xl font-bold mb-4">{verdict}</h1>
+        <p className="text-xl">{score}/10</p>
       </div>
     </main>
   )

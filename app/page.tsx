@@ -1,50 +1,50 @@
 "use client"
 
 import { useState, useEffect } from "react"
-
-type Lang = "EN" | "HU" | "DE"
-type Theme = "light" | "dark"
+import { Sun, Moon } from "lucide-react"
 
 export default function Home() {
   const [url, setUrl] = useState("")
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<any>(null)
-  const [error, setError] = useState("")
-  const [lang, setLang] = useState<Lang>("EN")
-  const [theme, setTheme] = useState<Theme>("dark")
+  const [theme, setTheme] = useState("dark")
+  const [lang, setLang] = useState("hu")
 
-  const t: any = {
-    EN: {
-      title: "Carspec",
-      subtitle: "Instantly analyze any used car listing with AI.",
-      placeholder: "Paste car listing URL...",
-      button: "Analyze",
-    },
-    HU: {
-      title: "Carspec",
-      subtitle: "Használt autók AI elemzése.",
-      placeholder: "Illeszd be a linket...",
-      button: "Elemzés",
-    },
-    DE: {
-      title: "Carspec",
-      subtitle: "Autoanalyse mit KI.",
-      placeholder: "Link einfügen...",
-      button: "Analysieren",
-    },
-  }
-
+  // THEME APPLY
   useEffect(() => {
-    document.documentElement.classList.remove("dark")
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark")
-    }
+    document.documentElement.classList.remove("light", "dark")
+    document.documentElement.classList.add(theme)
   }, [theme])
 
+  // TEXTS
+  const t = {
+    hu: {
+      title: "carspec",
+      subtitle:
+        "Használtautók elemzése gyorsan és könnyedén, egy gombnyomásra.",
+      placeholder: "Illeszd be a linket...",
+      button: "Elemzés",
+      loading: "Elemzés...",
+    },
+    en: {
+      title: "carspec",
+      subtitle: "Analyze used cars instantly with AI.",
+      placeholder: "Paste car listing link...",
+      button: "Analyze",
+      loading: "Analyzing...",
+    },
+    de: {
+      title: "carspec",
+      subtitle: "Gebrauchtwagen sofort mit KI analysieren.",
+      placeholder: "Link einfügen...",
+      button: "Analysieren",
+      loading: "Analyse läuft...",
+    },
+  }[lang]
+
   const handleAnalyze = async () => {
+    if (!url) return alert("Add meg a linket!")
+
     setLoading(true)
-    setError("")
-    setResult(null)
 
     try {
       const res = await fetch("/api/analyze", {
@@ -54,88 +54,126 @@ export default function Home() {
 
       const data = await res.json()
 
-      if (!res.ok) throw new Error()
+      if (!data.id) throw new Error()
 
-      setResult(data)
+      window.location.href = `/report/${data.id}`
     } catch {
-      setError("Error ❌")
+      alert("Hiba történt ❌")
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
-  const score = result?.ai?.score ?? 0
-
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-white text-black dark:bg-black dark:text-white px-4">
-
+    <main
+      className={`
+        min-h-screen flex flex-col items-center justify-center px-6
+        transition-all duration-500
+        ${
+          theme === "dark"
+            ? "bg-black text-white"
+            : "bg-white text-black"
+        }
+      `}
+    >
       {/* TOP BAR */}
-      <div className="absolute top-6 right-6 flex items-center gap-4">
-
-        {/* LANG */}
-        <div className="text-sm">
-          <button onClick={() => setLang("HU")}>HU</button> |{" "}
-          <button onClick={() => setLang("EN")}>EN</button> |{" "}
-          <button onClick={() => setLang("DE")}>DE</button>
+      <div className="absolute top-6 right-6 flex items-center gap-6 text-sm opacity-80">
+        {/* LANGUAGE */}
+        <div className="flex gap-2">
+          {["hu", "en", "de"].map((l) => (
+            <button
+              key={l}
+              onClick={() => setLang(l)}
+              className={`hover:opacity-100 transition ${
+                lang === l ? "font-bold underline" : ""
+              }`}
+            >
+              {l.toUpperCase()}
+            </button>
+          ))}
         </div>
 
-        {/* THEME */}
-        <div className="flex gap-2 border rounded-lg px-2 py-1">
-          <button onClick={() => setTheme("light")}>☀️</button>
-          <button onClick={() => setTheme("dark")}>🌙</button>
-        </div>
+        {/* THEME SWITCH */}
+        <div className="flex items-center border border-white/20 rounded-xl p-1 backdrop-blur bg-white/5">
+          <button
+            onClick={() => setTheme("light")}
+            className={`p-2 rounded-lg transition ${
+              theme === "light"
+                ? "bg-white text-black"
+                : "hover:bg-white/10"
+            }`}
+          >
+            <Sun size={16} />
+          </button>
 
+          <button
+            onClick={() => setTheme("dark")}
+            className={`p-2 rounded-lg transition ${
+              theme === "dark"
+                ? "bg-white text-black"
+                : "hover:bg-white/10"
+            }`}
+          >
+            <Moon size={16} />
+          </button>
+        </div>
       </div>
 
-      <h1 className="text-5xl font-bold mb-4">{t[lang].title}</h1>
-      <p className="mb-8 opacity-70">{t[lang].subtitle}</p>
+      {/* TITLE */}
+      <h1 className="text-6xl font-bold mb-4 tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+        {t.title}
+      </h1>
 
-      <input
-        type="text"
-        placeholder={t[lang].placeholder}
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-        className="w-full max-w-xl px-6 py-4 rounded-xl bg-gray-100 text-black dark:bg-white dark:text-black mb-4"
-      />
+      {/* SUBTITLE */}
+      <p className="opacity-60 mb-10 text-center max-w-xl">
+        {t.subtitle}
+      </p>
 
-      <button
-        onClick={handleAnalyze}
-        disabled={loading}
-        className="w-full max-w-xl py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white"
-      >
-        {loading ? "Analyzing..." : t[lang].button}
-      </button>
+      {/* INPUT */}
+      <div className="w-full max-w-xl space-y-4">
+        <input
+          type="text"
+          placeholder={t.placeholder}
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          className="
+            w-full px-6 py-4 rounded-2xl outline-none
+            bg-white/10 backdrop-blur text-white
+            border border-white/10
+            focus:border-blue-500 transition
+          "
+        />
 
-      {error && <div className="mt-6 text-red-400">{error}</div>}
-
-      {result && (
-        <div className="mt-10 w-full max-w-xl p-6 rounded-xl bg-black/40 dark:bg-white/10">
-
-          <h2 className="text-xl font-bold mb-2">
-            {result?.car?.title}
-          </h2>
-
-          <p className="opacity-70 mb-4">
-            {result?.car?.price}
-          </p>
-
-          <div className={`p-6 rounded-xl text-center ${
-            score >= 7
-              ? "bg-green-500/20 text-green-400"
-              : score >= 4
-              ? "bg-yellow-500/20 text-yellow-400"
-              : "bg-red-500/20 text-red-400"
-          }`}>
-            <div>AI Verdict</div>
-            <div className="text-2xl font-bold">
-              {score >= 7 ? "GOOD DEAL" : score >= 4 ? "AVERAGE" : "AVOID"}
+        {/* BUTTON */}
+        <button
+          onClick={handleAnalyze}
+          disabled={loading}
+          className={`
+            w-full py-4 rounded-2xl font-medium text-lg
+            transition-all duration-300
+            ${
+              loading
+                ? "bg-blue-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-500 active:scale-[0.97]"
+            }
+            shadow-lg hover:shadow-blue-500/30
+          `}
+        >
+          {loading ? (
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              {t.loading}
             </div>
-            <div>{score}/10</div>
-          </div>
+          ) : (
+            t.button
+          )}
+        </button>
+      </div>
 
-        </div>
-      )}
-
+      {/* FOOTER */}
+      <p className="mt-10 text-sm opacity-40">
+        carspec • AI powered
+      </p>
     </main>
   )
 }
